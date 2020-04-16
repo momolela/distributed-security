@@ -9,26 +9,37 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/**
- * @author Administrator
- * @version 1.0
- **/
 @Configuration
-@EnableGlobalMethodSecurity(securedEnabled = true,prePostEnabled = true)
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    //认证管理器
+    /**
+     * 认证管理器
+     *
+     * @return
+     * @throws Exception
+     */
     @Bean
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
-    //密码编码器
+
+    /**
+     * 密码编码器
+     *
+     * @return
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    //安全拦截机制（最重要）
+    /**
+     * 安全拦截机制（最重要）
+     *
+     * @param http
+     * @throws Exception
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
@@ -37,8 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/login*").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .formLogin()
-        ;
+                .formLogin();
 
     }
 }

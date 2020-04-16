@@ -28,6 +28,7 @@ import java.util.Arrays;
  * @author Administrator
  * @version 1.0
  * 授权服务配置
+ * @EnableAuthorizationServer 开启授权服务，需要继承AuthorizationServerConfigurerAdapter
  **/
 @Configuration
 @EnableAuthorizationServer
@@ -51,7 +52,12 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    //将客户端信息存储到数据库
+    /**
+     * 将客户端信息存储到数据库
+     *
+     * @param dataSource
+     * @return
+     */
     @Bean
     public ClientDetailsService clientDetailsService(DataSource dataSource) {
         ClientDetailsService clientDetailsService = new JdbcClientDetailsService(dataSource);
@@ -59,32 +65,38 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
         return clientDetailsService;
     }
 
-    //客户端详情服务
+    /**
+     * 客户端详情服务
+     *
+     * @param clients
+     * @throws Exception
+     */
     @Override
-    public void configure(ClientDetailsServiceConfigurer clients)
-            throws Exception {
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.withClientDetails(clientDetailsService);
-       /* clients.inMemory()// 使用in-memory存储
-                .withClient("c1")// client_id
-                .secret(new BCryptPasswordEncoder().encode("secret"))//客户端密钥
-                .resourceIds("res1")//资源列表
-                .authorizedGrantTypes("authorization_code", "password","client_credentials","implicit","refresh_token")// 该client允许的授权类型authorization_code,password,refresh_token,implicit,client_credentials
-                .scopes("all")// 允许的授权范围
-                .autoApprove(false)//false跳转到授权页面
-                //加上验证回调地址
-                .redirectUris("http://www.baidu.com")*/
-                ;
+//        clients.inMemory() // 使用in-memory存储
+//                .withClient("c1") // client_id
+//                .secret(new BCryptPasswordEncoder().encode("secret")) // 客户端密钥
+//                .resourceIds("res1") // 资源列表
+//                .authorizedGrantTypes("authorization_code", "password", "client_credentials", "implicit", "refresh_token") // 该client允许的授权类型authorization_code,password,refresh_token,implicit,client_credentials
+//                .scopes("all") // 允许的授权范围
+//                .autoApprove(false) // false跳转到授权页面
+//                .redirectUris("http://www.baidu.com"); // 加上验证回调地址
     }
 
 
-    //令牌管理服务
+    /**
+     * 令牌管理服务
+     *
+     * @return
+     */
     @Bean
     public AuthorizationServerTokenServices tokenService() {
-        DefaultTokenServices service=new DefaultTokenServices();
-        service.setClientDetailsService(clientDetailsService);//客户端详情服务
-        service.setSupportRefreshToken(true);//支持刷新令牌
-        service.setTokenStore(tokenStore);//令牌存储策略
-        //令牌增强
+        DefaultTokenServices service = new DefaultTokenServices();
+        service.setClientDetailsService(clientDetailsService); // 客户端详情服务
+        service.setSupportRefreshToken(true); // 支持刷新令牌
+        service.setTokenStore(tokenStore); // 令牌存储策略
+        // 令牌增强
         TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
         tokenEnhancerChain.setTokenEnhancers(Arrays.asList(accessTokenConverter));
         service.setTokenEnhancer(tokenEnhancerChain);
@@ -94,33 +106,52 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
         return service;
     }
 
-    //设置授权码模式的授权码如何存取，暂时采用内存方式
-/*    @Bean
-    public AuthorizationCodeServices authorizationCodeServices() {
-        return new InMemoryAuthorizationCodeServices();
-    }*/
+    /**
+     * 设置授权码模式的授权码如何存取，暂时采用内存方式
+     *
+     * @return
+     */
+//    @Bean
+//    public AuthorizationCodeServices authorizationCodeServices() {
+//        return new InMemoryAuthorizationCodeServices();
+//    }
 
+    /**
+     * 设置授权码模式的授权码如何存取
+     *
+     * @param dataSource
+     * @return
+     */
     @Bean
     public AuthorizationCodeServices authorizationCodeServices(DataSource dataSource) {
-        return new JdbcAuthorizationCodeServices(dataSource);//设置授权码模式的授权码如何存取
+        return new JdbcAuthorizationCodeServices(dataSource);
     }
 
+    /**
+     * 令牌访问端点配置
+     *
+     * @param endpoints
+     */
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
         endpoints
-                .authenticationManager(authenticationManager)//认证管理器
-                .authorizationCodeServices(authorizationCodeServices)//授权码服务
-                .tokenServices(tokenService())//令牌管理服务
+                .authenticationManager(authenticationManager) // 认证管理器
+                .authorizationCodeServices(authorizationCodeServices) // 授权码服务
+                .tokenServices(tokenService()) // 令牌管理服务
                 .allowedTokenEndpointRequestMethods(HttpMethod.POST);
     }
 
+    /**
+     * 配置令牌端点的安全约束
+     *
+     * @param security
+     */
     @Override
-    public void configure(AuthorizationServerSecurityConfigurer security){
+    public void configure(AuthorizationServerSecurityConfigurer security) {
         security
-                .tokenKeyAccess("permitAll()")                    //oauth/token_key是公开
-                .checkTokenAccess("permitAll()")                  //oauth/check_token公开
-                .allowFormAuthenticationForClients()				//表单认证（申请令牌）
-        ;
+                .tokenKeyAccess("permitAll()") // oauth/token_key是公开
+                .checkTokenAccess("permitAll()") // oauth/check_token公开
+                .allowFormAuthenticationForClients(); // 表单认证（申请令牌）
     }
 
 }

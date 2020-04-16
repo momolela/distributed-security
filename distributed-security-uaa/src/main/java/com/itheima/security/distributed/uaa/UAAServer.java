@@ -6,10 +6,6 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-/**
- * @author Administrator
- * @version 1.0
- **/
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableHystrix
