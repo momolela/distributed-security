@@ -9,8 +9,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-
-    //安全拦截机制（最重要）
+    /**
+     * 安全拦截机制（最重要）
+     *
+     * @param http
+     * @throws Exception
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
@@ -20,7 +24,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/r/**").authenticated() // 所有/r/**的请求必须认证通过
                 .anyRequest().permitAll() // 除了/r/**，其它的请求可以访问
         ;
-
-
     }
 }

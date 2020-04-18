@@ -8,17 +8,14 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 
-/**
- * @author Administrator
- * @version 1.0
- **/
 @Configuration
-public class ResouceServerConfig  {
+public class ResouceServerConfig {
 
     public static final String RESOURCE_ID = "res1";
 
-
-    //uaa资源服务配置
+    /**
+     * uaa资源服务配置
+     */
     @Configuration
     @EnableResourceServer
     public class UAAServerConfig extends ResourceServerConfigurerAdapter {
@@ -26,7 +23,7 @@ public class ResouceServerConfig  {
         private TokenStore tokenStore;
 
         @Override
-        public void configure(ResourceServerSecurityConfigurer resources){
+        public void configure(ResourceServerSecurityConfigurer resources) {
             resources.tokenStore(tokenStore).resourceId(RESOURCE_ID)
                     .stateless(true);
         }
@@ -34,13 +31,13 @@ public class ResouceServerConfig  {
         @Override
         public void configure(HttpSecurity http) throws Exception {
             http.authorizeRequests()
-                 .antMatchers("/uaa/**").permitAll();
+                    .antMatchers("/uaa/**").permitAll();
         }
     }
 
-
-    //order资源
-    //uaa资源服务配置
+    /**
+     * order资源
+     */
     @Configuration
     @EnableResourceServer
     public class OrderServerConfig extends ResourceServerConfigurerAdapter {
@@ -48,7 +45,7 @@ public class ResouceServerConfig  {
         private TokenStore tokenStore;
 
         @Override
-        public void configure(ResourceServerSecurityConfigurer resources){
+        public void configure(ResourceServerSecurityConfigurer resources) {
             resources.tokenStore(tokenStore).resourceId(RESOURCE_ID)
                     .stateless(true);
         }
@@ -61,8 +58,6 @@ public class ResouceServerConfig  {
         }
     }
 
-
-    //配置其它的资源服务..
-
+    // 配置其它的资源服务...
 
 }

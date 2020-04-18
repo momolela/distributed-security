@@ -40,30 +40,30 @@ public class AuthFilter extends ZuulFilter {
     @Override
     public Object run() throws ZuulException {
         RequestContext ctx = RequestContext.getCurrentContext();
-        //从安全上下文中拿 到用户身份对象
+        // 从安全上下文中拿 到用户身份对象
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(!(authentication instanceof OAuth2Authentication)){
+        if (!(authentication instanceof OAuth2Authentication)) {
             return null;
         }
         OAuth2Authentication oAuth2Authentication = (OAuth2Authentication) authentication;
         Authentication userAuthentication = oAuth2Authentication.getUserAuthentication();
-        //取出用户身份信息
+        // 取出用户身份信息
         String principal = userAuthentication.getName();
 
-        //取出用户权限
+        // 取出用户权限
         List<String> authorities = new ArrayList<>();
-        //从userAuthentication取出权限，放在authorities
-        userAuthentication.getAuthorities().stream().forEach(c->authorities.add(((GrantedAuthority) c).getAuthority()));
+        // 从userAuthentication取出权限，放在authorities
+        userAuthentication.getAuthorities().stream().forEach(c -> authorities.add(((GrantedAuthority) c).getAuthority()));
 
         OAuth2Request oAuth2Request = oAuth2Authentication.getOAuth2Request();
         Map<String, String> requestParameters = oAuth2Request.getRequestParameters();
-        Map<String,Object> jsonToken = new HashMap<>(requestParameters);
-        if(userAuthentication!=null){
-            jsonToken.put("principal",principal);
-            jsonToken.put("authorities",authorities);
+        Map<String, Object> jsonToken = new HashMap<>(requestParameters);
+        if (userAuthentication != null) {
+            jsonToken.put("principal", principal);
+            jsonToken.put("authorities", authorities);
         }
 
-        //把身份信息和权限信息放在json中，加入http的header中,转发给微服务
+        // 把身份信息和权限信息放在json中，加入http的header中,转发给微服务
         ctx.addZuulRequestHeader("json-token", EncryptUtil.encodeUTF8StringBase64(JSON.toJSONString(jsonToken)));
 
         return null;

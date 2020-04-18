@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -14,20 +16,21 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.code.InMemoryAuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
 
 /**
- * @author Administrator
- * @version 1.0
  * 授权服务配置
+ *
  * @EnableAuthorizationServer 开启授权服务，需要继承AuthorizationServerConfigurerAdapter
  **/
 @Configuration
@@ -46,6 +49,7 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    // 注入jwt令牌accessTokenConverter
     @Autowired
     private JwtAccessTokenConverter accessTokenConverter;
 
@@ -73,17 +77,18 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
      */
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        // 客户端信息存在数据库的形式
         clients.withClientDetails(clientDetailsService);
 //        clients.inMemory() // 使用in-memory存储
+//                // 开始配置客户端，可以配置多套客户端
 //                .withClient("c1") // client_id
 //                .secret(new BCryptPasswordEncoder().encode("secret")) // 客户端密钥
 //                .resourceIds("res1") // 资源列表
 //                .authorizedGrantTypes("authorization_code", "password", "client_credentials", "implicit", "refresh_token") // 该client允许的授权类型authorization_code,password,refresh_token,implicit,client_credentials
-//                .scopes("all") // 允许的授权范围
-//                .autoApprove(false) // false跳转到授权页面
+//                .scopes("all") // 允许的授权范围，客户端的权限
+//                .autoApprove(false) // false，跳转到授权页面
 //                .redirectUris("http://www.baidu.com"); // 加上验证回调地址
     }
-
 
     /**
      * 令牌管理服务
@@ -96,7 +101,8 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
         service.setClientDetailsService(clientDetailsService); // 客户端详情服务
         service.setSupportRefreshToken(true); // 支持刷新令牌
         service.setTokenStore(tokenStore); // 令牌存储策略
-        // 令牌增强
+
+        // jwt令牌增强
         TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
         tokenEnhancerChain.setTokenEnhancers(Arrays.asList(accessTokenConverter));
         service.setTokenEnhancer(tokenEnhancerChain);
@@ -107,7 +113,7 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
     }
 
     /**
-     * 设置授权码模式的授权码如何存取，暂时采用内存方式
+     * 设置授权码模式的授权码如何存取，采用内存方式
      *
      * @return
      */
@@ -117,7 +123,7 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
 //    }
 
     /**
-     * 设置授权码模式的授权码如何存取
+     * 设置授权码模式的授权码如何存取，采用数据库方式
      *
      * @param dataSource
      * @return
